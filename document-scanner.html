@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera & Document Scanner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 30px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        #videoContainer {
+            position: relative;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #000;
+            max-width: 640px;
+            margin: 0 auto 20px;
+        }
+        
+        #video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+        
+        .btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .status-info {
+            background: #e3f2fd;
+            color: #1976D2;
+        }
+        
+        .status-success {
+            background: #e8f5e9;
+            color: #4CAF50;
+        }
+        
+        .status-error {
+            background: #ffebee;
+            color: #f44336;
+        }
+        
+        #canvas {
+            display: none;
+        }
+        
+        .preview-section {
+            display: none;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+        
+        .preview-section.active {
+            display: block;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .preview-title {
+            font-size: 20px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .page-count {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .preview-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .preview-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .preview-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .preview-item .page-number {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .document-options {
+            display: none;
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .document-options.active {
+            display: block;
+        }
+        
+        .option-group {
+            margin-bottom: 15px;
+        }
+        
+        .option-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .option-group select,
+        .option-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .enhancement-options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .enhancement-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .enhancement-checkbox input[type="checkbox"] {
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📷 Camera & Document Scanner</h1>
+        
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="photo">Photo Mode</button>
+            <button class="mode-btn" data-mode="document">Document Scanner</button>
+        </div>
+        
+        <div id="videoContainer">
+            <video id="video" autoplay muted></video>
+        </div>
+        
+        <div id="status" class="status-info">Initializing camera...</div>
+        
+        <div class="document-options" id="documentOptions">
+            <div class="option-group">
+                <label>Document Enhancement:</label>
+                <div class="enhancement-options">
+                    <label class="enhancement-checkbox">
+                        <input type="checkbox" id="autoEnhance" checked>
+                        <span>Auto-enhance</span>
+                    </label>
+                    <label class="enhancement-checkbox">
+                        <input type="checkbox" id="grayscale">
+                        <span>Convert to B&W</span>
+                    </label>
+                    <label class="enhancement-checkbox">
+                        <input type="checkbox" id="highContrast" checked>
+                        <span>High contrast</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="captureBtn" class="btn btn-primary" disabled>
+                <span id="captureBtnText">Take Photo</span>
+            </button>
+            <button id="addPageBtn" class="btn btn-secondary" style="display: none;">Add Another Page</button>
+            <button id="finishBtn" class="btn btn-secondary" style="display: none;">Create PDF</button>
+            <button id="clearBtn" class="btn btn-danger" style="display: none;">Clear All</button>
+        </div>
+        
+        <div class="preview-section" id="previewSection">
+            <div class="preview-header">
+                <div class="preview-title">Captured Pages</div>
+                <div class="page-count" id="pageCount">0 pages</div>
+            </div>
+            <div class="preview-grid" id="previewGrid"></div>
+        </div>
+        
+        <canvas id="canvas"></canvas>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        const video = document.getElementById('video');
+        const captureBtn = document.getElementById('captureBtn');
+        const captureBtnText = document.getElementById('captureBtnText');
+        const addPageBtn = document.getElementById('addPageBtn');
+        const finishBtn = document.getElementById('finishBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const canvas = document.getElementById('canvas');
+        const status = document.getElementById('status');
+        const ctx = canvas.getContext('2d');
+        const previewSection = document.getElementById('previewSection');
+        const previewGrid = document.getElementById('previewGrid');
+        const pageCount = document.getElementById('pageCount');
+        const documentOptions = document.getElementById('documentOptions');
+        
+        let stream = null;
+        let currentMode = 'photo';
+        let capturedPages = [];
+        
+        // Mode switching
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+                updateUI();
+            });
+        });
+        
+        function updateUI() {
+            if (currentMode === 'document') {
+                captureBtnText.textContent = capturedPages.length === 0 ? 'Capture First Page' : 'Capture Page';
+                documentOptions.classList.add('active');
+                if (capturedPages.length > 0) {
+                    addPageBtn.style.display = 'inline-block';
+                    finishBtn.style.display = 'inline-block';
+                    clearBtn.style.display = 'inline-block';
+                    previewSection.classList.add('active');
+                }
+            } else {
+                captureBtnText.textContent = 'Take Photo';
+                documentOptions.classList.remove('active');
+                addPageBtn.style.display = 'none';
+                finishBtn.style.display = 'none';
+                clearBtn.style.display = 'none';
+                previewSection.classList.remove('active');
+            }
+            updatePageCount();
+        }
+        
+        function updatePageCount() {
+            pageCount.textContent = `${capturedPages.length} page${capturedPages.length !== 1 ? 's' : ''}`;
+        }
+        
+        async function initCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                });
+                
+                video.srcObject = stream;
+                captureBtn.disabled = false;
+                status.textContent = 'Camera ready!';
+                status.className = 'status-success';
+                
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                status.textContent = 'Error: Could not access camera. Please ensure camera permissions are granted.';
+                status.className = 'status-error';
+            }
+        }
+        
+        function processImage(imageData) {
+            if (currentMode !== 'document') return imageData;
+            
+            const data = imageData.data;
+            const autoEnhance = document.getElementById('autoEnhance').checked;
+            const grayscale = document.getElementById('grayscale').checked;
+            const highContrast = document.getElementById('highContrast').checked;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i];
+                let g = data[i + 1];
+                let b = data[i + 2];
+                
+                // Convert to grayscale if needed
+                if (grayscale) {
+                    const gray = r * 0.299 + g * 0.587 + b * 0.114;
+                    r = g = b = gray;
+                }
+                
+                // Auto-enhance brightness and contrast
+                if (autoEnhance) {
+                    r = Math.min(255, r * 1.2 + 10);
+                    g = Math.min(255, g * 1.2 + 10);
+                    b = Math.min(255, b * 1.2 + 10);
+                }
+                
+                // Apply high contrast
+                if (highContrast) {
+                    const threshold = grayscale ? 128 : 100;
+                    const avg = (r + g + b) / 3;
+                    if (avg > threshold) {
+                        r = Math.min(255, r * 1.3);
+                        g = Math.min(255, g * 1.3);
+                        b = Math.min(255, b * 1.3);
+                    } else {
+                        r = r * 0.7;
+                        g = g * 0.7;
+                        b = b * 0.7;
+                    }
+                }
+                
+                data[i] = r;
+                data[i + 1] = g;
+                data[i + 2] = b;
+            }
+            
+            return imageData;
+        }
+        
+        function capturePhoto() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            if (currentMode === 'document') {
+                // Process the image for document mode
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const processedData = processImage(imageData);
+                ctx.putImageData(processedData, 0, 0);
+                
+                // Add to captured pages
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    capturedPages.push({
+                        blob: blob,
+                        url: url,
+                        width: canvas.width,
+                        height: canvas.height
+                    });
+                    addPreviewItem(url, capturedPages.length - 1);
+                    updateUI();
+                    status.textContent = `Page ${capturedPages.length} captured!`;
+                    status.className = 'status-success';
+                }, 'image/png');
+            } else {
+                // Regular photo mode
+                canvas.toBlob((blob) => {
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    const filename = `photo-${timestamp}.png`;
+                    
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    status.textContent = `Photo saved as ${filename}`;
+                    status.className = 'status-success';
+                }, 'image/png');
+            }
+        }
+        
+        function addPreviewItem(url, index) {
+            const item = document.createElement('div');
+            item.className = 'preview-item';
+            item.dataset.index = index;
+            
+            item.innerHTML = `
+                <img src="${url}" alt="Page ${index + 1}">
+                <button class="remove-btn" onclick="removePage(${index})">×</button>
+                <div class="page-number">Page ${index + 1}</div>
+            `;
+            
+            previewGrid.appendChild(item);
+        }
+        
+        function removePage(index) {
+            URL.revokeObjectURL(capturedPages[index].url);
+            capturedPages.splice(index, 1);
+            rebuildPreview();
+            updateUI();
+        }
+        
+        function rebuildPreview() {
+            previewGrid.innerHTML = '';
+            capturedPages.forEach((page, index) => {
+                addPreviewItem(page.url, index);
+            });
+        }
+        
+        async function createPDF() {
+            if (capturedPages.length === 0) {
+                status.textContent = 'No pages to save!';
+                status.className = 'status-error';
+                return;
+            }
+            
+            status.textContent = 'Creating PDF...';
+            status.className = 'status-info';
+            
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: 'a4'
+            });
+            
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            
+            for (let i = 0; i < capturedPages.length; i++) {
+                if (i > 0) {
+                    pdf.addPage();
+                }
+                
+                const page = capturedPages[i];
+                const imgData = await blobToDataURL(page.blob);
+                
+                // Calculate dimensions to fit the page
+                const imgAspectRatio = page.width / page.height;
+                const pageAspectRatio = pageWidth / pageHeight;
+                
+                let drawWidth, drawHeight, drawX, drawY;
+                
+                if (imgAspectRatio > pageAspectRatio) {
+                    drawWidth = pageWidth;
+                    drawHeight = pageWidth / imgAspectRatio;
+                    drawX = 0;
+                    drawY = (pageHeight - drawHeight) / 2;
+                } else {
+                    drawHeight = pageHeight;
+                    drawWidth = pageHeight * imgAspectRatio;
+                    drawX = (pageWidth - drawWidth) / 2;
+                    drawY = 0;
+                }
+                
+                pdf.addImage(imgData, 'PNG', drawX, drawY, drawWidth, drawHeight);
+            }
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `document-${timestamp}.pdf`;
+            pdf.save(filename);
+            
+            status.textContent = `PDF saved as ${filename}`;
+            status.className = 'status-success';
+        }
+        
+        function blobToDataURL(blob) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        }
+        
+        function clearAll() {
+            capturedPages.forEach(page => URL.revokeObjectURL(page.url));
+            capturedPages = [];
+            previewGrid.innerHTML = '';
+            updateUI();
+            status.textContent = 'All pages cleared';
+            status.className = 'status-info';
+        }
+        
+        // Event listeners
+        captureBtn.addEventListener('click', capturePhoto);
+        addPageBtn.addEventListener('click', capturePhoto);
+        finishBtn.addEventListener('click', createPDF);
+        clearBtn.addEventListener('click', clearAll);
+        
+        // Initialize camera on load
+        window.addEventListener('load', initCamera);
+        
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            capturedPages.forEach(page => URL.revokeObjectURL(page.url));
+        });
+    </script>
+</body>
+</html>

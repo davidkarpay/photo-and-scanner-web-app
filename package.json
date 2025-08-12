@@ -1,0 +1,16 @@
+{
+  "name": "simple-camera-app",
+  "version": "1.0.0",
+  "description": "A simple desktop camera app for taking photos",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "electron": "electron ."
+  },
+  "keywords": ["camera", "photo", "desktop", "electron"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^22.3.0"
+  }
+}

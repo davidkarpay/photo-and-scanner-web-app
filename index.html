@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        #videoContainer {
+            position: relative;
+            margin-bottom: 20px;
+            border: 3px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        #video {
+            width: 640px;
+            height: 480px;
+            display: block;
+        }
+        
+        #captureBtn {
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        #captureBtn:hover {
+            background-color: #45a049;
+        }
+        
+        #captureBtn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        #status {
+            font-size: 16px;
+            color: #666;
+            text-align: center;
+        }
+        
+        #canvas {
+            display: none;
+        }
+        
+        .success {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .error {
+            color: #f44336;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>📷 Simple Camera App</h1>
+    
+    <div id="videoContainer">
+        <video id="video" autoplay muted></video>
+    </div>
+    
+    <button id="captureBtn" disabled>Take Photo</button>
+    
+    <div id="status">Initializing camera...</div>
+    
+    <canvas id="canvas"></canvas>
+    
+    <script src="camera.js"></script>
+</body>
+</html>
